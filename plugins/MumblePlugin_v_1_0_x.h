@@ -268,6 +268,15 @@ PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_onChannelExited(mumble_conne
 																	mumble_userid_t userID,
 																	mumble_channelid_t channelID);
 
+/// Called when any user changes his/her state (muted, deafened, ...).
+///
+/// @param connection The ID of the server-connection this event is connected to
+/// @param userID The ID of the user whose state has been changed
+/// @param talkingState The new state the user has switched to.
+PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_onUserMuteDeafStateChanged(mumble_connection_t connection,
+																	   mumble_userid_t userID,
+																	   mumble_mutedeaf_state_t muteDeafState);
+
 /// Called when any user changes his/her talking state.
 ///
 /// @param connection The ID of the server-connection this event is connected to

@@ -87,11 +87,16 @@ public slots:
 								std::shared_ptr< api_promise_t > promise);
 	void getUserName_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t userID,
 							 const char **name, std::shared_ptr< api_promise_t > promise);
+	void getUserMuteDeafState_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t userID,
+										mumble_mutedeaf_state_t *muteDeafState, std::shared_ptr< api_promise_t > promise);
 	void getChannelName_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
 								mumble_channelid_t channelID, const char **name,
 								std::shared_ptr< api_promise_t > promise);
 	void getAllUsers_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t **users,
 							 size_t *userCount, std::shared_ptr< api_promise_t > promise);
+	void getParentChannelID_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
+									mumble_channelid_t channelID, mumble_channelid_t *parentChannelID,
+									std::shared_ptr< api_promise_t > promise);
 	void getAllChannels_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
 								mumble_channelid_t **channels, size_t *channelCount,
 								std::shared_ptr< api_promise_t > promise);

@@ -30,7 +30,7 @@ foreach(ITEM ${ITEMS})
 		# PLUGIN_RETRACTED variable in the parent scope so that we can access it here
 		add_subdirectory(${ITEM})
 
-		if(${ITEM} STREQUAL "testPlugin" AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug)
+		if(${ITEM} STREQUAL "testPlugin" AND NOT "${CMAKE_BUILD_TYPE}" MATCHES Debug)
 			# The testPlugin is only included in Debug builds
 			continue()
 		endif()

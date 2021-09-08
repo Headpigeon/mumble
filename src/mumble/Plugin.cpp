@@ -142,6 +142,9 @@ void Plugin::resolveFunctionPointers() {
 			m_lib.resolve("mumble_onChannelEntered"));
 		m_pluginFnc.onChannelExited = reinterpret_cast< decltype(MumblePluginFunctions::onChannelExited) >(
 			m_lib.resolve("mumble_onChannelExited"));
+		m_pluginFnc.onUserMuteDeafStateChanged =
+			reinterpret_cast< decltype(MumblePluginFunctions::onUserMuteDeafStateChanged) >(
+				m_lib.resolve("mumble_onUserMuteDeafStateChanged"));
 		m_pluginFnc.onUserTalkingStateChanged =
 			reinterpret_cast< decltype(MumblePluginFunctions::onUserTalkingStateChanged) >(
 				m_lib.resolve("mumble_onUserTalkingStateChanged"));
@@ -192,6 +195,7 @@ void Plugin::resolveFunctionPointers() {
 		CHECK_AND_LOG(onServerDisconnected);
 		CHECK_AND_LOG(onChannelEntered);
 		CHECK_AND_LOG(onChannelExited);
+		CHECK_AND_LOG(onUserMuteDeafStateChanged);
 		CHECK_AND_LOG(onUserTalkingStateChanged);
 		CHECK_AND_LOG(onReceiveData);
 		CHECK_AND_LOG(onAudioInput);
@@ -544,6 +548,15 @@ void Plugin::onChannelExited(mumble_connection_t connection, mumble_userid_t use
 
 	if (m_pluginFnc.onChannelExited) {
 		m_pluginFnc.onChannelExited(connection, userID, channelID);
+	}
+}
+
+void Plugin::onUserMuteDeafStateChanged(mumble_connection_t connection, mumble_userid_t userID,
+										mumble_mutedeaf_state_t muteDeafState) const {
+	assertPluginLoaded(this);
+
+	if (m_pluginFnc.onUserMuteDeafStateChanged) {
+		m_pluginFnc.onUserMuteDeafStateChanged(connection, userID, muteDeafState);
 	}
 }
 
