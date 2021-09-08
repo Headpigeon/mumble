@@ -149,6 +149,12 @@ void Plugin::resolveFunctionPointers() {
 			m_lib.resolve("mumble_onChannelEntered"));
 		m_pluginFnc.onChannelExited = reinterpret_cast< decltype(MumblePluginFunctions::onChannelExited) >(
 			m_lib.resolve("mumble_onChannelExited"));
+		m_pluginFnc.onUserMuteDeafStateChanged =
+			reinterpret_cast< decltype(MumblePluginFunctions::onUserMuteDeafStateChanged) >(
+				m_lib.resolve("mumble_onUserMuteDeafStateChanged"));
+		m_pluginFnc.onUserLocalVolumeAdjustmentChanged =
+			reinterpret_cast< decltype(MumblePluginFunctions::onUserLocalVolumeAdjustmentChanged) >(
+				m_lib.resolve("mumble_onUserLocalVolumeAdjustmentChanged"));
 		m_pluginFnc.onUserTalkingStateChanged =
 			reinterpret_cast< decltype(MumblePluginFunctions::onUserTalkingStateChanged) >(
 				m_lib.resolve("mumble_onUserTalkingStateChanged"));
@@ -186,6 +192,12 @@ void Plugin::resolveFunctionPointers() {
 				reinterpret_cast< decltype(MumblePluginFunctions::getPositionalDataContextPrefix) >(
 					m_lib.resolve("mumble_getPositionalDataContextPrefix"));
 		}
+		if (pluginFunctionsVersion >= mumble_version_t({ 1, 3, 0 })) {
+			// Functions introduced with plugin functions scheme v1.3.0
+			m_pluginFnc.onUserMuteDeafStateChanged =
+				reinterpret_cast< decltype(MumblePluginFunctions::onUserMuteDeafStateChanged) >(
+					m_lib.resolve("mumble_onUserMuteDeafStateChanged"));
+		}
 
 #ifdef MUMBLE_PLUGIN_DEBUG
 #	define CHECK_AND_LOG(name)        \
@@ -207,6 +219,8 @@ void Plugin::resolveFunctionPointers() {
 		CHECK_AND_LOG(onServerDisconnected);
 		CHECK_AND_LOG(onChannelEntered);
 		CHECK_AND_LOG(onChannelExited);
+		CHECK_AND_LOG(onUserMuteDeafStateChanged);
+		CHECK_AND_LOG(onUserMuteDeafStateChanged);
 		CHECK_AND_LOG(onUserTalkingStateChanged);
 		CHECK_AND_LOG(onReceiveData);
 		CHECK_AND_LOG(onAudioInput);
@@ -328,6 +342,9 @@ mumble_error_t Plugin::init() {
 		registerAPIFunctions(&api);
 	} else if (apiVersion >= mumble_version_t({ 1, 2, 0 }) && apiVersion < mumble_version_t({ 1, 3, 0 })) {
 		MumbleAPI_v_1_2_x api = API::getMumbleAPI_v_1_2_x();
+		registerAPIFunctions(&api);
+	} else if (apiVersion >= mumble_version_t({ 1, 3, 0 }) && apiVersion < mumble_version_t({ 1, 4, 0 })) {
+		MumbleAPI_v_1_3_x api = API::getMumbleAPI_v_1_3_x();
 		registerAPIFunctions(&api);
 	} else {
 		// The API version could not be obtained -> this is an invalid plugin that shouldn't have been loaded in the
@@ -581,6 +598,24 @@ void Plugin::onChannelExited(mumble_connection_t connection, mumble_userid_t use
 
 	if (m_pluginFnc.onChannelExited) {
 		m_pluginFnc.onChannelExited(connection, userID, channelID);
+	}
+}
+
+void Plugin::onUserMuteDeafStateChanged(mumble_connection_t connection, mumble_userid_t userID,
+										mumble_mutedeaf_state_t muteDeafState) const {
+	assertPluginLoaded(this);
+
+	if (m_pluginFnc.onUserMuteDeafStateChanged) {
+		m_pluginFnc.onUserMuteDeafStateChanged(connection, userID, muteDeafState);
+	}
+}
+
+void Plugin::onUserLocalVolumeAdjustmentChanged(mumble_connection_t connection, mumble_userid_t userID,
+												  float adjustment) const {
+	assertPluginLoaded(this);
+
+	if (m_pluginFnc.onUserLocalVolumeAdjustmentChanged) {
+		m_pluginFnc.onUserLocalVolumeAdjustmentChanged(connection, userID, adjustment);
 	}
 }
 

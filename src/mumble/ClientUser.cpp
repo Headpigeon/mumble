@@ -65,6 +65,14 @@ ClientUser *ClientUser::add(unsigned int uiSession, QObject *po) {
 
 	QObject::connect(p, &ClientUser::talkingStateChanged, Global::get().pluginManager,
 					 &PluginManager::on_userTalkingStateChanged);
+	QObject::connect(p, &ClientUser::muteDeafStateChanged, Global::get().pluginManager,
+					 &PluginManager::on_userMuteDeafStateChanged);
+	QObject::connect(p, &ClientUser::prioritySpeakerStateChanged, Global::get().pluginManager,
+					 &PluginManager::on_userMuteDeafStateChanged);
+	QObject::connect(p, &ClientUser::recordingStateChanged, Global::get().pluginManager,
+					 &PluginManager::on_userMuteDeafStateChanged);
+	QObject::connect(p, &ClientUser::localVolumeAdjustmentsChanged, Global::get().pluginManager,
+					 &PluginManager::on_userLocalVolumeAdjustmentChanged);
 
 	return p;
 }

@@ -104,6 +104,11 @@ public:
 	// How often the manager should check for available positional data plugins
 	static constexpr int POSITIONAL_DATA_CHECK_INTERVAL = 1000;
 
+	/// Transforms the user's mute and deaf flags to a bit field. Cf. enum Mumble_UserStateFlag.
+	/// @param user The user whose mute and deaf flags to transform
+	/// @returns A bit field containing the user's mute and deaf flags
+	static mumble_mutedeaf_state_t getMuteDeafState(const ClientUser *user);
+
 	/// Constructor
 	///
 	/// @param additionalSearchPaths A pointer to a set of additional search paths or nullptr if no additional
@@ -200,6 +205,12 @@ public slots:
 	/// @param channel A pointer to the channel that has been left
 	/// @param user A pointer to the user that entered the channel
 	void on_channelExited(const Channel *channel, const User *user) const;
+	/// Slot that gets called when a client changes its state (muted, deafened, ..). It will delegate it to the
+	/// respective plugin callback.
+	void on_userMuteDeafStateChanged() const;
+	/// Slot that gets called when a client's local volume adjustment is changed. It will delegate it to the
+	/// respective plugin callback.
+	void on_userLocalVolumeAdjustmentChanged(float newAdjustment, float oldAdjustment) const;
 	/// Slot that gets called when the local client changes its talking state. It will delegate it to the respective
 	/// plugin callback.
 	void on_userTalkingStateChanged() const;

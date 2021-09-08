@@ -675,6 +675,61 @@ void PluginManager::on_channelExited(const Channel *channel, const User *user) c
 	});
 }
 
+void PluginManager::on_userMuteDeafStateChanged() const {
+	const ClientUser *user = qobject_cast< ClientUser * >(QObject::sender());
+#ifdef MUMBLE_PLUGIN_CALLBACK_DEBUG
+	if (user) {
+		qDebug() << "PluginManager: User " << user->qsName << " changed state to "
+				 << (user->bMute ? "muted" : "unmuted") << ", "
+				 << (user->bDeaf ? "deafened" : "undeafened") << ", "
+				 << (user->bSuppress ? "suppressed" : "unsppressed") << ", "
+				 << (user->bSelfMute ? "self muted" : "self unmuted") << ", "
+				 << (user->bSelfDeaf ? "self deafened" : "self undeafened") << ", "
+				 << (user->bLocalMute ? "locally muted" : "locally unmuted") << ", "
+				 << (user->bLocalIgnore ? "locally ignored" : "locally unignored") << ", "
+				 << (user->bPrioritySpeaker ? "priority speaker" : "no priority speaker") << ", "
+				 << (user->bRecording ? "recording" : "not recording");
+	} else {
+		qCritical() << "PluginManager: Unable to identify ClientUser";
+	}
+#endif
+
+	if (user) {
+		// Convert Mumble's user state to the user state used in the API
+		mumble_mutedeaf_state_t us = PluginManager::getMuteDeafState(user);
+
+		const mumble_connection_t connectionID = Global::get().sh->getConnectionID();
+
+		foreachPlugin([user, us, connectionID](Plugin &plugin) {
+			if (plugin.isLoaded()) {
+				plugin.onUserMuteDeafStateChanged(connectionID, user->uiSession, us);
+			}
+		});
+	}
+}
+
+void PluginManager::on_userLocalVolumeAdjustmentChanged(float newAdjustment, float oldAdjustment) const {
+	const ClientUser *user = qobject_cast< ClientUser * >(QObject::sender());
+#ifdef MUMBLE_PLUGIN_CALLBACK_DEBUG
+	if (user) {
+		qDebug() << "PluginManager: User " << user->qsName << " local volume adjustment changed to "
+				 << user->m_localVolume;
+	} else {
+		qCritical() << "PluginManager: Unable to identify ClientUser";
+	}
+#endif
+
+	if (user) {
+		const mumble_connection_t connectionID = Global::get().sh->getConnectionID();
+
+		foreachPlugin([user, newAdjustment, connectionID](Plugin &plugin) {
+			if (plugin.isLoaded()) {
+				plugin.onUserLocalVolumeAdjustmentChanged(connectionID, user->uiSession, newAdjustment);
+			}
+		});
+	}
+}
+
 QString getTalkingStateStr(Settings::TalkState ts) {
 	switch (ts) {
 		case Settings::TalkState::Passive:
@@ -1021,4 +1076,36 @@ void PluginManager::reportPermanentError(mumble_plugin_id_t pluginID) {
 			Log::Warning,
 			tr("Plugin \"%1\" encountered a permanent error in positional data gathering").arg(plugin->getName()));
 	}
+}
+
+/* static */ mumble_mutedeaf_state_t PluginManager::getMuteDeafState(const ClientUser *user) {
+	mumble_mutedeaf_state_t muteDeafState = 0;
+	if (user->bMute) {
+		muteDeafState |= MDS_MUTE;
+	}
+	if (user->bDeaf) {
+		muteDeafState |= MDS_DEAF;
+	}
+	if (user->bSuppress) {
+		muteDeafState |= MDS_SUPPRESS;
+	}
+	if (user->bSelfMute) {
+		muteDeafState |= MDS_SELF_MUTE;
+	}
+	if (user->bSelfDeaf) {
+		muteDeafState |= MDS_SELF_DEAF;
+	}
+	if (user->bLocalMute) {
+		muteDeafState |= MDS_LOCAL_MUTE;
+	}
+	if (user->bLocalIgnore) {
+		muteDeafState |= MDS_LOCAL_IGNORE;
+	}
+	if (user->bPrioritySpeaker) {
+		muteDeafState |= MDS_PRIORITY_SPEAKER;
+	}
+	if (user->bRecording) {
+		muteDeafState |= MDS_RECORDING;
+	}
+	return muteDeafState;
 }

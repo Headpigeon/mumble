@@ -365,6 +365,29 @@ void mumble_onChannelExited(mumble_connection_t connection, mumble_userid_t user
 		   << ". (ServerConnection: " << connection << ")" << std::endl;
 }
 
+void mumble_onUserMuteDeafStateChanged(mumble_connection_t connection, mumble_userid_t userID,
+									   mumble_mutedeaf_state_t muteDeafState) {
+	std::ostream &stream = pLog() << "User with ID " << userID << " changed mute/deafen state to "
+								  << (muteDeafState & MDS_MUTE ? "muted" : "unmuted") << ", "
+								  << (muteDeafState & MDS_DEAF ? "deafened" : "undeafened") << ", "
+								  << (muteDeafState & MDS_SUPPRESS ? "suppressed" : "unsuppressed") << ", "
+								  << (muteDeafState & MDS_SELF_MUTE ? "self muted" : "self unmuted") << ", "
+								  << (muteDeafState & MDS_SELF_DEAF ? "self deafened" : "self undeafened") << ", "
+								  << (muteDeafState & MDS_LOCAL_MUTE ? "locally muted" : "locally unmuted") << ", "
+								  << (muteDeafState & MDS_LOCAL_IGNORE ? "locally ignored" : "locally unignored") << ", "
+								  << (muteDeafState & MDS_PRIORITY_SPEAKER ? "priority speaker" : "no priority speaker") << ", "
+								  << (muteDeafState & MDS_RECORDING ? "recording" : "not recording");
+
+	stream << ". (ServerConnection: " << connection << ")" << std::endl;
+}
+
+void mumble_onUserLocalVolumeAdjustmentChanged(mumble_connection_t connection, mumble_userid_t userID,
+									           float adjustment) {
+	std::ostream &stream = pLog() << "User with ID " << userID << " local volume adjustment changed to " << adjustment;
+
+	stream << ". (ServerConnection: " << connection << ")" << std::endl;
+}
+
 void mumble_onUserTalkingStateChanged(mumble_connection_t connection, mumble_userid_t userID,
 									  mumble_talking_state_t talkingState) {
 	std::ostream &stream = pLog() << "User with ID " << userID << " changed his talking state to ";

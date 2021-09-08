@@ -35,7 +35,7 @@
  * Plugin version information
  */
 #	define MUMBLE_PLUGIN_INTERFACE_MAJOR_MACRO 1
-#	define MUMBLE_PLUGIN_INTERFACE_MINOR_MACRO 2
+#	define MUMBLE_PLUGIN_INTERFACE_MINOR_MACRO 3
 #	define MUMBLE_PLUGIN_INTERFACE_PATCH_MACRO 0
 
 // Allow the selected API version be overwritten by external definitions
@@ -43,7 +43,7 @@
 #		define MUMBLE_PLUGIN_API_MAJOR_MACRO 1
 #	endif
 #	ifndef MUMBLE_PLUGIN_API_MINOR_MACRO
-#		define MUMBLE_PLUGIN_API_MINOR_MACRO 2
+#		define MUMBLE_PLUGIN_API_MINOR_MACRO 3
 #	endif
 #	ifndef MUMBLE_PLUGIN_API_PATCH_MACRO
 #		define MUMBLE_PLUGIN_API_PATCH_MACRO 0
@@ -203,6 +203,30 @@ enum Mumble_TransmissionMode {
 	MUMBLE_TM_CONTINOUS,
 	MUMBLE_TM_VOICE_ACTIVATION,
 	MUMBLE_TM_PUSH_TO_TALK,
+};
+
+/**
+ * The bits of the user mute deaf state's flags.
+ */
+enum Mumble_UserStateFlag {
+	/// User has been muted by third party (admin)
+	MDS_MUTE = 1 << 0,
+	/// User has been deafened by third party (admin)
+	MDS_DEAF = 1 << 2,
+	/// User has been suppressed
+	MDS_SUPPRESS = 1 << 3,
+	/// User has muted themself
+	MDS_SELF_MUTE = 1 << 4,
+	/// User has deafened themself
+	MDS_SELF_DEAF = 1 << 5,
+	/// User has been locally muted
+	MDS_LOCAL_MUTE = 1 << 6,
+	/// User has been locally muted
+	MDS_LOCAL_IGNORE = 1 << 7,
+	/// User is a priority speaker
+	MDS_PRIORITY_SPEAKER = 1 << 8,
+	/// User is recording
+	MDS_RECORDING = 1 << 9,
 };
 
 /**
@@ -498,6 +522,10 @@ typedef enum Mumble_SettingsKey mumble_settings_key_t;
  * Typedef for the type of a key-code
  */
 typedef enum Mumble_KeyCode mumble_keycode_t;
+/**
+ * Typedef for the type of a mumble user state flag
+ */
+typedef uint32_t mumble_mutedeaf_state_t;
 
 #endif // EXTERNAL_MUMBLE_PLUGIN_TYPEDEFS_
 
@@ -985,6 +1013,30 @@ MUMBLE_PLUGIN_EXPORT void MUMBLE_PLUGIN_CALLING_CONVENTION mumble_onChannelEnter
 MUMBLE_PLUGIN_EXPORT void MUMBLE_PLUGIN_CALLING_CONVENTION mumble_onChannelExited(mumble_connection_t connection,
 																				  mumble_userid_t userID,
 																				  mumble_channelid_t channelID);
+
+/**
+ *Called when any user changes his/her state (muted, deafened, ...).
+ *
+ * @param connection The ID of the server-connection this event is connected to
+ * @param userID The ID of the user whose state has been changed
+ * @param muteDeafState The new state the user has switched to.
+ */
+MUMBLE_PLUGIN_EXPORT void MUMBLE_PLUGIN_CALLING_CONVENTION mumble_onUserMuteDeafStateChanged(
+																				mumble_connection_t connection,
+																				mumble_userid_t userID,
+																				mumble_mutedeaf_state_t muteDeafState);
+
+/**
+ * Called when any user's local volume adjustment is changed.
+ *
+ * @param connection The ID of the server-connection this event is connected to
+ * @param userID The ID of the user whose local volument adjustment has been changed
+ * @param adjustment The new value of the local volume adjustment.
+ */
+MUMBLE_PLUGIN_EXPORT void MUMBLE_PLUGIN_CALLING_CONVENTION mumble_onUserLocalVolumeAdjustmentChanged(
+																					   mumble_connection_t connection,
+																					   mumble_userid_t userID,
+																					   float adjustment);
 
 /**
  * Called when any user changes his/her talking state.
@@ -1804,6 +1856,63 @@ struct MUMBLE_API_STRUCT_NAME {
 	 */
 	mumble_error_t(MUMBLE_PLUGIN_CALLING_CONVENTION *playSample)(mumble_plugin_id_t callerID,
 																 const char *samplePath PARAM_v1_2(float volume));
+
+	/**
+	 * Gets the ID of the parent channel of the given channel
+	 *
+	 * @param callerID The ID of the plugin calling this function
+	 * @param connection The ID of the server-connection to use as a context
+	 * @param channelID The ID of the channel of which to get the parent channel ID
+	 * @param[out] A pointer to where the ID of the parent channel shall be written
+	 * @returns The error code. If everything went well, STATUS_OK will be returned. Only then the passed pointer
+	 * may be accessed
+	 */
+	mumble_error_t(MUMBLE_PLUGIN_CALLING_CONVENTION *getParentChannelID)(mumble_plugin_id_t callerID,
+																		 mumble_connection_t connection,
+																		 mumble_channelid_t channelID,
+																		 mumble_channelid_t *parentChannelID);
+
+	/**
+	 * Gets information about the given user's state.
+	 *
+	 * @param callerID The ID of the plugin calling this function
+	 * @param connection The ID of the server-connection to use as a context
+	 * @param userID The user's ID whose state should be obtained
+	 * @param[out] userState A pointer to a mumble_mutedeaf_state_t containing the user's muted and deafen state.
+	 * @returns The error code. If everything went well, STATUS_OK will be returned.
+	 */
+	mumble_error_t(MUMBLE_PLUGIN_CALLING_CONVENTION *getUserMuteDeafState)(mumble_plugin_id_t callerID,
+																		   mumble_connection_t connection,
+																		   mumble_userid_t userID,
+																		   mumble_mutedeaf_state_t *userState);
+
+	/**
+	 * Gets the given user's local volume adjustment
+	 *
+	 * @param callerID The ID of the plugin calling this function
+	 * @param connection The ID of the server-connection to use as a context
+	 * @param userID The user's ID whose local volume adjustment should be obtained
+	 * @param[out] adjustment A pointer to receive the user's local volume adjustment
+	 * @returns The error code. If everything went well, STATUS_OK will be returned.
+	 */
+	mumble_error_t(MUMBLE_PLUGIN_CALLING_CONVENTION *getUserLocalVolumeAdjustment)(mumble_plugin_id_t callerID,
+																				   mumble_connection_t connection,
+																				   mumble_userid_t userID,
+																				   float *adjustment);
+
+	/**
+	 * Requests Mumble to set the local volume adjustment of the given client.
+	 *
+	 * @param callerID The ID of the plugin calling this function.
+	 * @param connection The ID of the server-connection to use as a context
+	 * @param userID The ID of the user whose local volume to adjust
+	 * @param adjustment The new value for the local volume adjustment of the given client
+	 * @returns The error code. If everything went well, STATUS_OK will be returned.
+	 */
+	mumble_error_t(MUMBLE_PLUGIN_CALLING_CONVENTION *requestLocalVolumeAdjustment)(mumble_plugin_id_t callerID,
+																				   mumble_connection_t connection,
+																				   mumble_userid_t userID,
+																				   float adjustment);
 };
 
 #	ifdef MUMBLE_PLUGIN_CREATE_MUMBLE_API_TYPEDEF

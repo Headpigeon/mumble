@@ -92,6 +92,9 @@ public slots:
 								std::shared_ptr< api_promise_t > promise);
 	void getAllUsers_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t **users,
 							 size_t *userCount, std::shared_ptr< api_promise_t > promise);
+	void getParentChannelID_v_1_3_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
+									mumble_channelid_t channelID, mumble_channelid_t *parentChannelID,
+									std::shared_ptr< api_promise_t > promise);
 	void getAllChannels_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
 								mumble_channelid_t **channels, size_t *channelCount,
 								std::shared_ptr< api_promise_t > promise);
@@ -101,6 +104,12 @@ public slots:
 								   mumble_channelid_t channelID, mumble_userid_t **users, size_t *userCount,
 								   std::shared_ptr< api_promise_t > promise);
 	void getLocalUserTransmissionMode_v_1_0_x(mumble_plugin_id_t callerID, mumble_transmission_mode_t *transmissionMode,
+											  std::shared_ptr< api_promise_t > promise);
+	void getUserMuteDeafState_v_1_3_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
+									  mumble_userid_t userID, mumble_mutedeaf_state_t *muteDeafState,
+									  std::shared_ptr< api_promise_t > promise);
+	void getUserLocalVolumeAdjustment_v_1_3_x(mumble_plugin_id_t callerID, mumble_connection_t connection,
+											  mumble_userid_t userID, float *adjustment,
 											  std::shared_ptr< api_promise_t > promise);
 	void isUserLocallyMuted_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t userID,
 									bool *muted, std::shared_ptr< api_promise_t > promise);
@@ -126,6 +135,8 @@ public slots:
 													  std::shared_ptr< api_promise_t > promise);
 	void requestLocalMute_v_1_0_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t userID,
 								  bool muted, std::shared_ptr< api_promise_t > promise);
+	void requestLocalVolumeAdjustment_v_1_3_x(mumble_plugin_id_t callerID, mumble_connection_t connection, mumble_userid_t userID,
+								              float adjustment, std::shared_ptr< api_promise_t > promise);
 	void requestLocalUserMute_v_1_0_x(mumble_plugin_id_t callerID, bool muted,
 									  std::shared_ptr< api_promise_t > promise);
 	void requestLocalUserDeaf_v_1_0_x(mumble_plugin_id_t callerID, bool deafened,
@@ -173,6 +184,9 @@ MumbleAPI_v_1_0_x getMumbleAPI_v_1_0_x();
 
 /// @returns The Mumble API struct (v1.2.x)
 MumbleAPI_v_1_2_x getMumbleAPI_v_1_2_x();
+
+/// @returns The Mumble API struct (v1.3.x)
+MumbleAPI_v_1_3_x getMumbleAPI_v_1_3_x();
 
 /// Converts from the Qt key-encoding to the API's key encoding.
 ///
